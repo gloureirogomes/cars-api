@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: cars-api
+  main:
+    banner-mode: off
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cars
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  flyway:
+    baseline-on-migrate: true
+    locations: classpath:db/migration
