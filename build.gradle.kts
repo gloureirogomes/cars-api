@@ -23,10 +23,21 @@ repositories {
 	mavenCentral()
 }
 
+val flywayVersion = "10.1.0"
+val postgresVersion = "42.7.0"
+
 dependencies {
+	runtimeOnly("org.postgresql:postgresql:$postgresVersion")
+	runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
+
+	implementation("org.flywaydb:flyway-core:$flywayVersion")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-web")
+
 	compileOnly("org.projectlombok:lombok")
+
 	annotationProcessor("org.projectlombok:lombok")
+
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
