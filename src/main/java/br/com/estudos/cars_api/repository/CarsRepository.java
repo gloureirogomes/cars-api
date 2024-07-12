@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Repository
 public interface CarsRepository extends JpaRepository<Car, UUID> {
-
     Car save(Car car);
-
+    void deleteById(UUID carId);
 }
+
