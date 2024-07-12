@@ -4,17 +4,17 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
-@Setter
+@Builder
 @Entity
 @Table(name = "cars")
-public class Cars {
+public class Car {
 
     @Id
     @Column(name = "car_id")
@@ -40,4 +40,18 @@ public class Cars {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public Car() {
+    }
+
+    public Car(UUID carId, String model, String brand, String color, Integer year, Boolean automatic, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.carId = carId;
+        this.model = model;
+        this.brand = brand;
+        this.color = color;
+        this.year = year;
+        this.automatic = automatic;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
 }
