@@ -1,11 +1,14 @@
 package br.com.estudos.cars_api.repository;
 
-import br.com.estudos.cars_api.domain.Cars;
+import br.com.estudos.cars_api.domain.Car;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface CarsRepository {
+import java.util.UUID;
 
-    void save(Cars car);
+@Repository
+public interface CarsRepository extends JpaRepository<Car, UUID> {
+
+    Car save(Car car);
 
 }
