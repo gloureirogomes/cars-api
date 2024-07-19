@@ -10,5 +10,6 @@ import java.util.UUID;
 public interface CarsRepository extends JpaRepository<Car, UUID> {
     Car save(Car car);
     void deleteById(UUID carId);
+    boolean existsById(UUID carId);
 }
 

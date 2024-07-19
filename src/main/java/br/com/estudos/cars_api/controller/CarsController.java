@@ -32,4 +32,13 @@ public class CarsController {
         carsRepository.deleteById(carId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/car/{carId}")
+    public ResponseEntity<Car> findCar(@PathVariable UUID carId) {
+        carsRepository.existsById(carId);
+        return ResponseEntity.ok((carsRepository.findById(carId)).orElse(null));
+    }
+
 }
+
+
