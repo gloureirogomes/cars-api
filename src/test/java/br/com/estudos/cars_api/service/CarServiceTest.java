@@ -2,6 +2,9 @@ package br.com.estudos.cars_api.service;
 
 import br.com.estudos.cars_api.controller.dto.CarDto;
 import br.com.estudos.cars_api.domain.Car;
+import br.com.estudos.cars_api.exception.CarNotFoundException;
+import br.com.estudos.cars_api.exception.DeleteCarException;
+import br.com.estudos.cars_api.exception.FindCarException;
 import br.com.estudos.cars_api.exception.SaveCarException;
 import br.com.estudos.cars_api.repository.CarsRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -20,10 +23,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 class CarServiceTest {
@@ -118,15 +121,23 @@ class CarServiceTest {
         }
 
         @Test
-        @DisplayName("Should return null when not found car on database with given car id")
-        public void shouldReturnNullWhenNotFoundCarOnDatabaseWithGivenCarId() {
+        @DisplayName("Should throw CarNotFoundException when not found car on database with given car id")
+        public void shouldThrowCarNotFoundExceptionWhenNotFoundCarOnDatabaseWithGivenCarId() {
             UUID carId = UUID.randomUUID();
 
             given(carRepository.findById(any(UUID.class))).willReturn(Optional.empty());
 
-            var result = carService.findCarById(carId);
+            assertThatExceptionOfType(CarNotFoundException.class).isThrownBy(() -> carService.findCarById(carId));
+        }
 
-            assertNull(result);
+        @Test
+        @DisplayName("Should throw FindCarException when error occurs to find on database")
+        public void shouldThrowFindCarExceptionWhenErrorOccursToFindOnDatabase() {
+            UUID carId = UUID.randomUUID();
+
+            given(carRepository.findById(any(UUID.class))).willThrow(DataIntegrityViolationException.class);
+
+            assertThatExceptionOfType(FindCarException.class).isThrownBy(() -> carService.findCarById(carId));
         }
     }
 
@@ -138,9 +149,63 @@ class CarServiceTest {
         public void shouldDeleteCarOnDatabaseWhenGivenValidId() {
             UUID validCarId = UUID.randomUUID();
 
+            Car car = Car.builder()
+                    .carId(validCarId)
+                    .model("Palio")
+                    .brand("Fiat")
+                    .color("Black")
+                    .year(2005)
+                    .automatic(false)
+                    .createdAt(LocalDateTime.now().minusDays(3))
+                    .updatedAt(null)
+                    .build();
+
+            given(carRepository.findById(any(UUID.class))).willReturn(Optional.of(car));
             doNothing().when(carRepository).deleteById(any(UUID.class));
 
             assertThatNoException().isThrownBy(() -> carService.deleteCar(validCarId));
+        }
+
+        @Test
+        @DisplayName("Should throw CarNotFoundException when try to delete but car not found on database")
+        public void shouldThrowCarNotFoundExceptionWhenTryToDeleteCarOnDatabase() {
+            UUID validCarId = UUID.randomUUID();
+
+            given(carRepository.findById(any(UUID.class))).willReturn(Optional.empty());
+
+            assertThatExceptionOfType(CarNotFoundException.class).isThrownBy(() -> carService.deleteCar(validCarId));
+        }
+
+        @Test
+        @DisplayName("Should throw DeleteCarException when error occurs to delete on database")
+        public void shouldThrowDeleteCarExceptionWhenErrorOccursToDeleteOnDatabase() {
+            UUID validCarId = UUID.randomUUID();
+
+            Car car = Car.builder()
+                    .carId(validCarId)
+                    .model("Palio")
+                    .brand("Fiat")
+                    .color("Black")
+                    .year(2005)
+                    .automatic(false)
+                    .createdAt(LocalDateTime.now().minusDays(3))
+                    .updatedAt(null)
+                    .build();
+
+            given(carRepository.findById(any(UUID.class))).willReturn(Optional.of(car));
+            doThrow(DataIntegrityViolationException.class).when(carRepository).deleteById(any(UUID.class));
+
+            assertThatExceptionOfType(DeleteCarException.class).isThrownBy(() -> carService.deleteCar(validCarId));
+        }
+
+        @Test
+        @DisplayName("Should throw FindCarException when try to delete but error occurs to find on database")
+        public void shouldThrowFindCarExceptionWhenTryToDeleteButErrorOccursToFindOnDatabase() {
+            UUID carId = UUID.randomUUID();
+
+            given(carRepository.findById(any(UUID.class))).willThrow(DataIntegrityViolationException.class);
+
+            assertThatExceptionOfType(FindCarException.class).isThrownBy(() -> carService.deleteCar(carId));
         }
     }
 }

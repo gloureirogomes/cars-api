@@ -3,6 +3,8 @@ package br.com.estudos.cars_api.service;
 import br.com.estudos.cars_api.controller.dto.CarDto;
 import br.com.estudos.cars_api.domain.Car;
 import br.com.estudos.cars_api.exception.CarNotFoundException;
+import br.com.estudos.cars_api.exception.DeleteCarException;
+import br.com.estudos.cars_api.exception.FindCarException;
 import br.com.estudos.cars_api.exception.SaveCarException;
 import br.com.estudos.cars_api.mapper.CarMapper;
 import br.com.estudos.cars_api.repository.CarsRepository;
@@ -32,12 +34,22 @@ public class CarService {
     }
 
     public void deleteCar(UUID carId) {
-        carsRepository.deleteById(carId);
+        findCarById(carId);
+        try {
+            carsRepository.deleteById(carId);
+        } catch (DataAccessException dae) {
+            log.error("Error to delete on database! Error: {}", dae.getMessage());
+            throw new DeleteCarException(dae.getMessage());
+        }
     }
 
     public CarDto findCarById(UUID carId) {
-        var persistedCar = carsRepository.findById(carId);
-        return persistedCar.map(CarMapper::toDto)
-                .orElseThrow(() -> new CarNotFoundException("Registro não existe no banco"));
+        try {
+            var persistedCar = carsRepository.findById(carId);
+            return persistedCar.map(CarMapper::toDto).orElseThrow(() -> new CarNotFoundException("Registro não existe no banco de dados"));
+        } catch (DataAccessException dae) {
+            log.error("Error to find on database! Error: {}", dae.getMessage());
+            throw new FindCarException(dae.getMessage());
+        }
     }
 }
