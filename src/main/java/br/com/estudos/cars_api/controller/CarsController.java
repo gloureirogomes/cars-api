@@ -2,17 +2,14 @@ package br.com.estudos.cars_api.controller;
 
 import br.com.estudos.cars_api.controller.dto.CarDto;
 import br.com.estudos.cars_api.exception.CarNotFoundException;
+import br.com.estudos.cars_api.exception.DeleteCarException;
+import br.com.estudos.cars_api.exception.FindCarException;
 import br.com.estudos.cars_api.exception.SaveCarException;
 import br.com.estudos.cars_api.service.CarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
@@ -35,8 +32,14 @@ public class CarsController {
 
     @DeleteMapping("/car/{carId}")
     public ResponseEntity<Void> deleteCar(@PathVariable UUID carId) {
-        carService.deleteCar(carId);
-        return ResponseEntity.noContent().build();
+        try {
+            carService.deleteCar(carId);
+            return ResponseEntity.noContent().build();
+        } catch (CarNotFoundException cnfe) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, cnfe.getMessage());
+        } catch (FindCarException | DeleteCarException e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao deletar no banco de dados");
+        }
     }
 
     @GetMapping("/car/{carId}")
@@ -45,7 +48,9 @@ public class CarsController {
             var carToReturn = carService.findCarById(carId);
             return ResponseEntity.ok((carToReturn));
         } catch (CarNotFoundException cnfe) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro não existe no banco");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, cnfe.getMessage());
+        } catch (FindCarException fce) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao buscar no banco de dados");
         }
     }
 }
